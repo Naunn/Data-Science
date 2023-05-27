@@ -1,0 +1,1 @@
+This repository serves to summarize various techniques and approaches in data science.
