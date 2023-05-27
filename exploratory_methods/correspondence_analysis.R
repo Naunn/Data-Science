@@ -203,6 +203,7 @@ res.ca <- CA(housetasks, graph = FALSE)
 fviz_ca_biplot(res.ca, 
                map ="rowprincipal", arrow = c(TRUE, TRUE),
                repel = TRUE)
+
 # Eigen values
 get_eigenvalue(res.ca)
 #       eigenvalue variance.percent cumulative.variance.percent
@@ -211,11 +212,59 @@ get_eigenvalue(res.ca)
 # Dim.3  0.1270484         11.39509                   100.00000
 fviz_eig(res.ca)
 
+# Contributions of rows to the dimensions
+corrplot(res.ca$row$contrib, is.corr=FALSE)    
+# row$coord: coordinates of each row point in each dimension (1, 2 and 3). Used to create the scatter plot.
+# row$cos2: quality of representation of rows.
+# var$contrib: contribution of rows (in %) to the definition of the dimensions.
 
+# Contributions of rows to dimension 1
+fviz_contrib(res.ca, choice = "row", axes = 1, top = 10)
+# Contributions of rows to dimension 2
+fviz_contrib(res.ca, choice = "row", axes = 2, top = 10)
 
+# Appendix =============================================================================================================
+# https://www.displayr.com/correspondence-analysis-versus-multiple-correspondence-analysis-use/
+# The core difference between correspondence analysis and multiple correspondence analysis:
+# - multiple correspondence analysis is a technique for analyzing categorical variables. It is essentially a form of factor
+#   analysis for categorical data. You should use it when you want a general understanding of how categorical variables are related.
+# - Correspondence analysis is a technique for summarizing relativities in tables. As tables are ubiquitous in data analysis,
+#   it is a technique that can be used widely.
+# The reason for the word "multiple" is that multiple correspondence can be applied to a table that has more than 
+# two dimensions (e.g., a cube), whereas correspondence analysis requires as an input a table with only two dimensions.
 
+data(poison) # This data is a result from a survey carried out on children of primary school who suffered from food poisoning.
+poison %>% kable()
+# | Age| Time|Sick   |Sex |Nausea   |Vomiting |Abdominals |Fever   |Diarrhae   |Potato   |Fish   |Mayo   |Courgette |Cheese   |Icecream   |
+# |---:|----:|:------|:---|:--------|:--------|:----------|:-------|:----------|:--------|:------|:------|:---------|:--------|:----------|
+# |   9|   22|Sick_y |F   |Nausea_y |Vomit_n  |Abdo_y     |Fever_y |Diarrhea_y |Potato_y |Fish_y |Mayo_y |Courg_y   |Cheese_y |Icecream_y |
+# |   5|    0|Sick_n |F   |Nausea_n |Vomit_n  |Abdo_n     |Fever_n |Diarrhea_n |Potato_y |Fish_y |Mayo_y |Courg_y   |Cheese_n |Icecream_y |
+# |   6|   16|Sick_y |F   |Nausea_n |Vomit_y  |Abdo_y     |Fever_y |Diarrhea_y |Potato_y |Fish_y |Mayo_y |Courg_y   |Cheese_y |Icecream_y |
+# |   9|    0|Sick_n |F   |Nausea_n |Vomit_n  |Abdo_n     |Fever_n |Diarrhea_n |Potato_y |Fish_y |Mayo_n |Courg_y   |Cheese_y |Icecream_y |
+# |   7|   14|Sick_y |M   |Nausea_n |Vomit_y  |Abdo_y     |Fever_y |Diarrhea_y |Potato_y |Fish_y |Mayo_y |Courg_y   |Cheese_y |Icecream_y |
+# |  72|    9|Sick_y |M   |Nausea_n |Vomit_n  |Abdo_y     |Fever_y |Diarrhea_y |Potato_y |Fish_n |Mayo_y |Courg_y   |Cheese_y |Icecream_y |
+# |   5|   16|Sick_y |F   |Nausea_n |Vomit_y  |Abdo_y     |Fever_y |Diarrhea_y |Potato_y |Fish_y |Mayo_y |Courg_y   |Cheese_y |Icecream_y |
+poison %>% str()
+# 'data.frame':	55 obs. of  15 variables:
+# $ Age       : int  9 5 6 9 7 72 5 10 5 11 ...
+# $ Time      : int  22 0 16 0 14 9 16 8 20 12 ...
+# $ Sick      : Factor w/ 2 levels "Sick_n","Sick_y": 2 1 2 1 2 2 2 2 2 2 ...
+# $ Sex       : Factor w/ 2 levels "F","M": 1 1 1 1 2 2 1 1 2 2 ...
+# $ Nausea    : Factor w/ 2 levels "Nausea_n","Nausea_y": 2 1 1 1 1 1 1 2 2 1 ...
+# $ Vomiting  : Factor w/ 2 levels "Vomit_n","Vomit_y": 1 1 2 1 2 1 2 2 1 2 ...
+# $ Abdominals: Factor w/ 2 levels "Abdo_n","Abdo_y": 2 1 2 1 2 2 2 2 2 1 ...
+# $ Fever     : Factor w/ 2 levels "Fever_n","Fever_y": 2 1 2 1 2 2 2 2 2 2 ...
+# $ Diarrhae  : Factor w/ 2 levels "Diarrhea_n","Diarrhea_y": 2 1 2 1 2 2 2 2 2 2 ...
+# $ Potato    : Factor w/ 2 levels "Potato_n","Potato_y": 2 2 2 2 2 2 2 2 2 2 ...
+# $ Fish      : Factor w/ 2 levels "Fish_n","Fish_y": 2 2 2 2 2 1 2 2 2 2 ...
+# $ Mayo      : Factor w/ 2 levels "Mayo_n","Mayo_y": 2 2 2 1 2 2 2 2 2 2 ...
+# $ Courgette : Factor w/ 2 levels "Courg_n","Courg_y": 2 2 2 2 2 2 2 2 2 2 ...
+# $ Cheese    : Factor w/ 2 levels "Cheese_n","Cheese_y": 2 1 2 2 2 2 2 2 2 2 ...
+# $ Icecream  : Factor w/ 2 levels "Icecream_n","Icecream_y": 2 2 2 2 2 2 2 2 2 2 ...
 
-
-
+res.mca <- 
+  poison %>% 
+  select(!c(Age, Time)) %>% 
+  MCA(graph = TRUE)
 
 
