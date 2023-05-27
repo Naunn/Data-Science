@@ -5,16 +5,22 @@
 # Notice that we can only compare two categorical variables.
 
 ## Important terms:
-# - contingency table (also known as a cross tabulation or crosstab) is a type of table in a matrix format
-# that displays the (multivariate) frequency distribution of the variables. They provide a basic picture of
-# the interrelation between two variables and can help find interactions between them;
-# -
+# - contingency table - (also known as a cross tabulation or crosstab) is a type of (2 dimensional) table in a matrix
+#   format that displays the (multivariate) frequency distribution of the variables. They provide a basic picture of
+#   the interrelation between two variables and can help find interactions between them;
+# - residuals - quantifies the difference between the observed data and the data we would expect - assuming there is
+#   no relationship between the row and column categories (here, those would be brand and attribute). 
+#   A positive residual shows us that the count for that brand attribute pairing is much higher than expected,
+#   suggesting a strong relationship; correspondingly, a negative residual shows a lower value than expected,
+#   suggesting a weaker relationship. Let's walk through calculating these residuals.
 
 # Libraries ============================================================================================================
 library(dplyr)
 library(knitr)
 library(FactoMineR) # Multivariate Exploratory Data Analysis and Data Mining with R
 library(factoextra) # Print method for an object of class factoextra
+library(gplots)
+library(corrplot)
 
 # Data =================================================================================================================
 data("housetasks") # House tasks contingency table
@@ -124,7 +130,8 @@ mpg_prep %>% str()
 # $ fl          : chr  "p" "p" "p" "p" ...
 # $ class       : chr  "compact" "compact" "compact" "compact" ...
 
-table(mpg_prep$manufacturer, mpg_prep$trans) %>% kable()
+mpg_cont <- table(mpg_prep$manufacturer, mpg_prep$trans) 
+mpg_cont %>% kable()
 # |           | auto| manual|
 # |:----------|----:|------:|
 # |audi       |   11|      7|
@@ -143,7 +150,7 @@ table(mpg_prep$manufacturer, mpg_prep$trans) %>% kable()
 # |toyota     |   20|     14|
 # |volkswagen |   13|     14|
 
-table(mpg_prep$manufacturer, mpg_prep$trans) %>% prop.table() %>% kable()
+mpg_cont %>% kable()
 # |           |      auto|    manual|
 # |:----------|---------:|---------:|
 # |audi       | 0.0470085| 0.0299145|
@@ -161,5 +168,54 @@ table(mpg_prep$manufacturer, mpg_prep$trans) %>% prop.table() %>% kable()
 # |subaru     | 0.0299145| 0.0299145|
 # |toyota     | 0.0854701| 0.0598291|
 # |volkswagen | 0.0555556| 0.0598291|
+
+# Visualization ========================================================================================================
+# fancy graphic comparison
+t(as.table(as.matrix(housetasks))) %>%
+  balloonplot(
+    main = "housetasks",
+    xlab = "",
+    ylab = "",
+    label = FALSE,
+    show.margins = FALSE
+  )
+
+# Correspondence Analysis and interpretation ===========================================================================
+# For a small contingency table, you can use the Chi-square test to evaluate whether there is
+# a significant dependence between row and column categories. Because CA is a descriptive technique,
+# it can be applied to tables regardless of a significant chi-squared test.
+
+# The null hypothesis of the Chi-Square test is that no relationship exists on the categorical variables
+# in the population, so they are independent. If p < 0.05 then we reject null hypothesis.
+chisq.test(housetasks)
+
+# CA model
+res.ca <- CA(housetasks, graph = FALSE)
+# The way that correspondence analysis works means that we can compare between row labels based on distances. We can also 
+# compare between column labels based on distances. However, if we want to compare a row label to a column label, we need to:
+#   1. Look at the length of the line connecting the row label to the origin (0,0). Longer lines indicate that the row label
+#     is highly associated with some of the column labels (i.e., it has at least one high residual).
+#   2. Look at the length of the label connecting the column label to the origin (0,0). Longer lines again indicate
+#     a high association between the column label and one or more row labels.
+#   3. Look at the angle formed between these two lines. Really small angles indicate association. 
+#     90 degree angles indicate no relationship. Angles near 180 degrees indicate negative associations.
+
+fviz_ca_biplot(res.ca, 
+               map ="rowprincipal", arrow = c(TRUE, TRUE),
+               repel = TRUE)
+# Eigen values
+get_eigenvalue(res.ca)
+#       eigenvalue variance.percent cumulative.variance.percent
+# Dim.1  0.5428893         48.69222                    48.69222 # (relatively) high variance.percentage of 1 dimension
+# Dim.2  0.4450028         39.91269                    88.60491 # (relatively) high variance.percentage of 2 dimension
+# Dim.3  0.1270484         11.39509                   100.00000
+fviz_eig(res.ca)
+
+
+
+
+
+
+
 
 
