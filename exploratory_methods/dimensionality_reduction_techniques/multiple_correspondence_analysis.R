@@ -72,6 +72,15 @@ poison %>% str()
 # $ Cheese    : Factor w/ 2 levels "Cheese_n","Cheese_y": 2 1 2 2 2 2 2 2 2 2 ...
 # $ Icecream  : Factor w/ 2 levels "Icecream_n","Icecream_y": 2 2 2 2 2 2 2 2 2 2 ...
 
+data("Titanic")
+Titanic %>% str()
+# 'table' num [1:4, 1:2, 1:2, 1:2] 0 0 35 0 0 0 17 0 118 154 ...
+# - attr(*, "dimnames")=List of 4
+# ..$ Class   : chr [1:4] "1st" "2nd" "3rd" "Crew"
+# ..$ Sex     : chr [1:2] "Male" "Female"
+# ..$ Age     : chr [1:2] "Child" "Adult"
+# ..$ Survived: chr [1:2] "No" "Yes"
+
 # Preprocessing ========================================================================================================
 mpg_prep <- mpg %>%
   transmute(
@@ -126,6 +135,28 @@ sapply(mpg_prep, nlevels) %>% sum()
 poison_prep <- poison %>% select(!c(Age, Time))
 sapply(poison_prep, nlevels) %>% sum()
 
+titanic_prep <-
+  Titanic %>%
+  as.data.frame() %>%
+  transmute(
+    Class = factor(
+      Class,
+      levels = c("3rd", "2nd", "1st", "Crew"),
+      ordered = TRUE
+    ),
+    Sex = factor(Sex, levels = c("Male", "Female"), ordered = TRUE),
+    Age = factor(Age, levels = c("Adult", "Child"), ordered = TRUE),
+    Survived = factor(Survived, levels = c("No", "Yes"), ordered = TRUE)
+  )
+
+titanic_prep %>% str()
+# 'data.frame':	32 obs. of  4 variables:
+# $ Class   : Ord.factor w/ 4 levels "3rd"<"2nd"<"1st"<..: 3 2 1 4 3 2 1 4 3 2 ...
+# $ Sex     : Ord.factor w/ 2 levels "Male"<"Female": 1 1 1 1 2 2 2 2 1 1 ...
+# $ Age     : Ord.factor w/ 2 levels "Adult"<"Child": 2 2 2 2 2 2 2 2 1 1 ...
+# $ Survived: Ord.factor w/ 2 levels "No"<"Yes": 1 1 1 1 1 1 1 1 1 1 ...
+sapply(titanic_prep, nlevels) %>% sum()
+
 # Multiple correspondence Analysis and interpretation ==================================================================
 # MCA model
 res.mca <- MCA(mpg_prep, graph = FALSE)
@@ -173,8 +204,10 @@ fviz_mca_biplot(res.mca,
                 ggtheme = theme_minimal())
 
 # visualize the correlation between variables and MCA principal dimensions
-fviz_mca_var(res.mca, choice = "mca.cor", 
-             repel = TRUE, # Avoid text overlapping (slow)
+fviz_mca_var(res.mca,
+             choice = "mca.cor",
+             repel = TRUE,
+             # Avoid text overlapping (slow)
              ggtheme = theme_minimal())
 # The plot above helps to identify variables that are the most correlated with each dimension. The squared correlations
 # between variables and the dimensions are used as coordinates. It can be seen that, the variables cyl and displ are
@@ -208,7 +241,24 @@ res.mca$eig
 # dim 12 0.01037235               1.037235                          99.79247
 # dim 13 0.00207531               0.207531                         100.00000
 fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0, 15))
-fviz_mca_var(res.mca, choice = "mca.cor", 
-             repel = TRUE, # Avoid text overlapping (slow)
+fviz_mca_var(res.mca,
+             choice = "mca.cor",
+             repel = TRUE,
+             # Avoid text overlapping (slow)
              ggtheme = theme_minimal())
 
+res.mca <- MCA(titanic_prep, graph = FALSE)
+res.mca$eig
+#       eigenvalue percentage of variance cumulative percentage of variance
+# dim 1       0.25               16.66667                          16.66667
+# dim 2       0.25               16.66667                          33.33333
+# dim 3       0.25               16.66667                          50.00000
+# dim 4       0.25               16.66667                          66.66667
+# dim 5       0.25               16.66667                          83.33333
+# dim 6       0.25               16.66667                         100.00000
+fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0, 25))
+fviz_mca_var(res.mca,
+             choice = "mca.cor",
+             repel = TRUE,
+             # Avoid text overlapping (slow)
+             ggtheme = theme_minimal())
