@@ -157,9 +157,10 @@ titanic_prep %>% str()
 # $ Survived: Ord.factor w/ 2 levels "No"<"Yes": 1 1 1 1 1 1 1 1 1 1 ...
 sapply(titanic_prep, nlevels) %>% sum()
 
-# Multiple correspondence Analysis and interpretation ==================================================================
+# Multiple correspondence analysis and interpretation ==================================================================
 # MCA model
 res.mca <- MCA(mpg_prep, graph = FALSE)
+summary(res.mca) # standard function for R models
 res.mca$eig
 # eigenvalue percentage of variance cumulative percentage of variance
 # dim 1  0.446460617             11.8180752                          11.81808

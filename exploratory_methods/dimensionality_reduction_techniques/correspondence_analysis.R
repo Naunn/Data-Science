@@ -65,7 +65,7 @@ housetasks %>% str()
 # $ Husband    : int  2 5 7 15 1 4 9 23 75 21 ...
 # $ Jointly    : int  4 4 13 7 57 53 55 15 3 66 ...
 
-# Visualization ========================================================================================================
+# Correspondence analysis and interpretation ===========================================================================
 # fancy graphic comparison
 t(as.table(as.matrix(housetasks))) %>%
   balloonplot(
@@ -95,6 +95,7 @@ res.ca <- CA(housetasks, graph = FALSE)
 #     a high association between the column label and one or more row labels.
 #   3. Look at the angle formed between these two lines. Really small angles indicate association. 
 #     90 degree angles indicate no relationship. Angles near 180 degrees indicate negative associations.
+summary(res.ca) # standard function for R models
 
 fviz_ca_biplot(res.ca, 
                map ="rowprincipal", arrow = c(TRUE, TRUE),
