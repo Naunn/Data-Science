@@ -51,6 +51,9 @@ cor_matrix <- cor(Protein_prep[3:11])
 cor_matrix %>% corrplot(method = "number")
 
 # Principal component analysis and interpretation ======================================================================
+## princomp() approach =================================================================================================
+# The calculation is done using eigen on the correlation or covariance matrix, as determined by cor. This is done for
+# compatibility with the S-PLUS result. A preferred method of calculation is to use svd on x, as is done in prcomp."
 pca.m <- princomp(cor_matrix)
 summary(pca.m) # standard function for R models
 
@@ -89,3 +92,31 @@ fviz_pca_var(
   gradient.cols = c("red", "orange", "green"),
   repel = TRUE
 )
+
+## prcomp() approach ===================================================================================================
+# The calculation is done by a singular value decomposition of the (centered and possibly scaled) data matrix, not by 
+# using eigen on the covariance matrix. This is generally the preferred method for numerical accuracy.
+pca.m <- prcomp(Protein[3:11], center = TRUE, scale = TRUE)
+summary(pca.m)
+
+# new coordinates based on pca-axises
+pca.m$x %>% kable()
+dim(pca.m$x) # equivalent of python shape
+
+fviz_eig(pca.m, addlabels = TRUE)
+
+fviz_pca_biplot(pca.m, col.var = "black")
+
+# cos2 (the square cosine) - determines how much each variable is represented in a given component.
+fviz_cos2(pca.m, choice = "var", axes = 1:2)
+
+# Use repel = TRUE to avoid overplotting (slow if many points)
+fviz_pca_var(
+  pca.m,
+  col.var = "cos2",
+  gradient.cols = c("red", "orange", "green"),
+  repel = TRUE
+)
+
+# Finally, based on pca.m$x table with coordinates, we can build regression/clasiffication model depending on
+# percentage of variance in each pca column. In this case, we can use first 3 columns, i.e. pca.m$x[,1:3] (~75.2%).
