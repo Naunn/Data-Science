@@ -158,6 +158,13 @@ titanic_prep %>% str()
 sapply(titanic_prep, nlevels) %>% sum()
 
 # Multiple correspondence analysis and interpretation ==================================================================
+# factoextra functions:
+# get_eigenvalue(res.famd): Extract the eigenvalues/variances retained by each dimension (axis).
+# fviz_eig(res.famd): Visualize the eigenvalues/variances.
+# get_famd_ind(res.famd): Extract the results for individuals.
+# get_famd_var(res.famd): Extract the results for quantitative and qualitative variables.
+# fviz_famd_ind(res.famd), fviz_famd_var(res.famd): Visualize the results for individuals and variables, respectively.
+
 # MCA model
 res.mca <- MCA(mpg_prep, graph = FALSE)
 summary(res.mca) # standard function for R models
