@@ -115,7 +115,7 @@ y_test <-
 lambda_seq <- 10 ^ seq(2, -2, by = -.1)
 
 # traditional model
-model <- glmnet(x = X_train, y = y_train, lambda = lambda_seq)
+model <- glmnet(x = X_train, y = y_train, alpha = 0, lambda = lambda_seq)
 summary(model)
 coef(model)
 
@@ -129,7 +129,7 @@ r_squared <-
 r_squared + lambdas
 
 # Choosing Optimal Lambda Value using cross validation
-model_cv <- cv.glmnet(x = X_train, y = y_train, lambda = lambda_seq)
+model_cv <- cv.glmnet(x = X_train, y = y_train, alpha = 0, lambda = lambda_seq)
 
 model_cv$glmnet.fit
 model_cv$lambda.min # 0.01 - best lambda based on cross-validation
@@ -140,9 +140,10 @@ plot(model_cv)
 best_model <-
   glmnet(x = X_train,
          y = y_train,
+         alpha = 0,
          lambda = model_cv$lambda.min)
 summary(best_model)
-best_model$dev.ratio # 0.9555775
+best_model$dev.ratio # 0.9555799
 coef(best_model)
 
 # Prediction
