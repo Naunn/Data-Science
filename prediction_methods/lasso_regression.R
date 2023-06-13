@@ -137,6 +137,6 @@ coef(best_model)
 pred <- predict(best_model, s = model_cv$lambda.min, newx = X_test)
 
 ggplot() +
-  geom_line(aes(x = seq(1, length(y_test)), y = y_test), col = "blue", lwd =
+  geom_line(aes(x = seq(1, length(y_test)), y = y_test), col = "blue", size =
               1.) +
   geom_line(aes(x = seq(1, length(pred)), y = pred))
