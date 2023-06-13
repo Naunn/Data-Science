@@ -5,6 +5,8 @@
 # This term is distinct from multivariate linear regression, where multiple correlated dependent variables are predicted,
 # rather than a single scalar variable.
 
+# For choosing the unknown parameters in a linear regression model we use ordinary least squares (OLS) method.
+
 # Libraries ============================================================================================================
 library(dplyr)
 library(tidyr)
