@@ -42,6 +42,12 @@
 # - In PCA, the components yielded are uninterpretable, i.e. they do not represent underlying ‘constructs’;
 #   in FA, the underlying constructs can be labelled and readily interpreted, given an accurate model specification.
 
+# Assumptions
+# - The variables’ linear relationships
+# - Absence of multicollinearity
+# - Relevance of the variables
+# - The existence of a true correlation between factors and variables
+
 # Libraries ============================================================================================================
 library(dplyr)
 library(psych) # A package for personality, psychometric, and psychological research

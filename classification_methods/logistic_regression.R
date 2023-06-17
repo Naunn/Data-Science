@@ -4,6 +4,19 @@
 # In regression analysis, logistic regression (or logit regression) is estimating the parameters of a logistic model
 # (the coefficients in the linear combination).
 
+# Assumptions
+# - First, binary logistic regression requires the dependent variable to be binary and ordinal logistic regression 
+#   requires the dependent variable to be ordinal.
+# - Second, logistic regression requires the observations to be independent of each other.  In other words, 
+#   the observations should not come from repeated measurements or matched data.
+# - Third, logistic regression requires there to be little or no multicollinearity among the independent variables.
+#   This means that the independent variables should not be too highly correlated with each other.
+# - Fourth, logistic regression assumes linearity of independent variables and log odds.  although this analysis does 
+#   not require the dependent and independent variables to be related linearly, it requires that the independent 
+#   variables are linearly related to the log odds.
+# - Finally, logistic regression typically requires a large sample size.  A general guideline is that you need at 
+#   minimum of 10 cases with the least frequent outcome for each independent variable in your model.
+
 # Libraries ============================================================================================================
 library(dplyr)
 library(tidyr)

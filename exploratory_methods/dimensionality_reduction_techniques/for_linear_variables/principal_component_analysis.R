@@ -4,6 +4,22 @@
 # with fewer dimensions than the initial data. Many studies use the first two principal components in order to plot
 # the data in two dimensions and to visually identify clusters of closely related data points.
 
+# Assumptions
+# - PCA assumes a correlation between features. If the features (or dimensions or columns, in tabular data) are not 
+#   correlated, PCA will be unable to determine principal components.
+# - PCA is sensitive to the scale of the features. Imagine we have two features - one takes values between 0 and 1000, 
+#   while the other takes values between 0 and 1. PCA will be extremely biased towards the first feature being the first 
+#   principle component, regardless of the actual maximum variance within the data. This is why it’s so important to
+#   standardize the values first.
+# - PCA is not robust against outliers. Similar to the point above, the algorithm will be biased in datasets with 
+#   strong outliers. This is why it is recommended to remove outliers before performing PCA.
+# - PCA assumes a linear relationship between features. The algorithm is not well suited to capturing non-linear 
+#   relationships. That’s why it’s advised to turn non-linear features or relationships between features into linear, 
+#   using the standard methods such as log transforms.
+# - Technical implementations often assume no missing values. When computing PCA using statistical software tools, 
+#   they often assume that the feature set has no missing values (no empty rows). Be sure to remove those rows and/or 
+#   columns with missing values, or impute missing values with a close approximation (e.g. the mean of the column).
+
 # Libraries ============================================================================================================
 library(dplyr)
 library(knitr)
