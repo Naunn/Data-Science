@@ -1,8 +1,8 @@
 # PRINCIPAL COMPONENT ANALYSIS =========================================================================================
 # PCA is a statistical technique for reducing the dimensionality of a (quantitative) dataset. This is accomplished by
 # linearly transforming the data into a new coordinate system where (most of) the variation in the data can be described
-# with fewer dimensions than the initial data. Many studies use the first two principal components in order to plot
-# the data in two dimensions and to visually identify clusters of closely related data points.
+# with fewer dimensions than the initial data (main focus is on data with the most variation). Many studies use the first 
+# two principal components in order to plot the data in two dimensions and to visually identify clusters of closely related data points.
 
 # Assumptions
 # - PCA assumes a correlation between features. If the features (or dimensions or columns, in tabular data) are not 
