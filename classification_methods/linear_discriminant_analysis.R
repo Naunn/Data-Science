@@ -5,10 +5,10 @@
 # combination may be used as a linear classifier, or, more commonly, for dimensionality reduction before later
 # classification. LDA uses continuous independent variables and a categorical dependent variable (i.e. the class label).
 
-# In statistics, a quadratic classifier is a statistical classifier that uses a quadratic decision surface to separate 
+# In statistics, a quadratic classifier is a statistical classifier that uses a quadratic decision surface to separate
 # measurements of two or more classes of objects or events. It is a more general version of the linear classifier.
-# Quadratic discriminant analysis (QDA) is closely related to linear discriminant analysis (LDA), where it is assumed that 
-# the measurements from each class are normally distributed. Unlike LDA however, in QDA there is no assumption that the 
+# Quadratic discriminant analysis (QDA) is closely related to linear discriminant analysis (LDA), where it is assumed that
+# the measurements from each class are normally distributed. Unlike LDA however, in QDA there is no assumption that the
 # covariance of each of the classes is identical.
 
 # DA is like PCA (dimensionality reduction), but it focuses on maximizing the separatibility among know categories.
@@ -44,8 +44,8 @@ iris %>% str()
 # Split the data into training (80%) and test set (20%)
 training.samples <- iris$Species %>%
   createDataPartition(p = 0.8, list = FALSE)
-train.data <- iris[training.samples,]
-test.data <- iris[-training.samples,]
+train.data <- iris[training.samples, ]
+test.data <- iris[-training.samples, ]
 
 # Estimate preprocessing parameters (categorical variables are automatically ignored)
 preproc.param <- train.data %>%
@@ -115,7 +115,7 @@ predictions <- model %>% predict(test.transformed)
 ggplot(as.data.frame(predictions$x), aes(LD1, LD2)) +
   geom_point(aes(color = predictions$class))
 
-mean(predictions$class==test.transformed$Species) # 1
+mean(predictions$class == test.transformed$Species) # 1
 
 # Quadratic discriminant analysis (QDA) ================================================================================
 # Fit the model
@@ -123,11 +123,11 @@ model <- qda(Species ~ ., data = train.transformed)
 model
 # Call:
 #   qda(Species ~ ., data = train.transformed)
-# 
+#
 # Prior probabilities of groups:
-#    setosa versicolor  virginica 
-# 0.3333333  0.3333333  0.3333333 
-# 
+#    setosa versicolor  virginica
+# 0.3333333  0.3333333  0.3333333
+#
 # Group means:
 #            Sepal.Length Sepal.Width Petal.Length
 # setosa       -1.0258296   0.9030345   -1.3129790
@@ -145,13 +145,4 @@ predictions <- model %>% predict(test.transformed)
 # - posterior: is a matrix whose columns are the groups, rows are the individuals and values are the posterior probability
 #   that the corresponding observation belongs to the groups.
 
-mean(predictions$class==test.transformed$Species) # 1
-
-
-
-
-
-
-
-
-
+mean(predictions$class == test.transformed$Species) # 1
