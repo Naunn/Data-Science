@@ -14,6 +14,12 @@
 # - the prior probability for all k clusters are the same, i.e. each cluster has roughly equal number of observations;
 # If any one of these 3 assumptions is violated, then k-means will fail.
 
+# K Means Clustering in R Programming is an Unsupervised Non-linear algorithm that cluster data based on similarity or 
+# similar groups. It seeks to partition the observations into a pre-specified number of clusters. Segmentation of data 
+# takes place to assign each training example to a segment called a cluster. In the unsupervised algorithm, high reliance
+# on raw data is given with large expenditure on manual review for review of relevance is given. It is used in a variety 
+# of fields like Banking, healthcare, retail, Media, etc.
+
 # Libraries ============================================================================================================
 library(dplyr)
 library(tidyr)
