@@ -28,9 +28,9 @@ library(factoextra) # Print method for an object of class factoextra
 library(corrr) # Package for correlation analysis that mainly focuses on creating and handling R data frames
 library(corrplot)
 library(gplots)
+library(MultBiplotR)
 
 # Data =================================================================================================================
-library(MultBiplotR)
 data(Protein) # real-valued multivariate data set describing the average protein consumption by citizens of 25 European countries
 detach("package:MultBiplotR", unload = TRUE)
 
