@@ -21,6 +21,8 @@ library(dplyr)
 library(tidyr)
 library(purrr)
 library(boot)
+library(ggplot2)
+library(caret)
 library(randomForest)
 
 # Data =================================================================================================================
@@ -86,8 +88,8 @@ df <-
 # Split the data into training (80%) and test set (20%)
 training.samples.df <- df$Type %>%
   createDataPartition(p = 0.8, list = FALSE)
-train.data.df <- df[training.samples.df, ]
-test.data.df <- df[-training.samples.df, ]
+train.data.df <- df[training.samples.df,]
+test.data.df <- df[-training.samples.df,]
 
 train.data.df$Type %>% table()
 #  1  2  3  5  6  7
@@ -96,9 +98,9 @@ train.data.df$Type %>% table()
 # Simple K-NN for comparison
 base_pred <-
   knn3Train(
-    train = train.data %>% select(!Type),
-    test = test.data %>% select(!Type),
-    cl = train.data$Type,
+    train = train.data.df %>% select(!Type),
+    test = test.data.df %>% select(!Type),
+    cl = train.data.df$Type,
     k = 5,
     prob = FALSE
   ) %>%
@@ -109,23 +111,23 @@ base_cm <-
 
 base_cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.72500        0.60145        0.56112        0.85399        0.52500        0.00793            NaN
+#  0.60000        0.39394        0.43327        0.75135        0.50000        0.13409            NaN
 
 base_cm$byClass %>% round(5)
-#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.61905     0.94737        0.92857        0.69231   0.92857 0.61905 0.74286      0.525
-# Class: 2     0.90909     0.82759        0.66667        0.96000   0.66667 0.90909 0.76923      0.275
-# Class: 3          NA     0.92500             NA             NA   0.00000      NA      NA      0.000
-# Class: 5     1.00000     0.97436        0.50000        1.00000   0.50000 1.00000 0.66667      0.025
-# Class: 6          NA     0.97500             NA             NA   0.00000      NA      NA      0.000
-# Class: 7     0.71429     1.00000        1.00000        0.94286   1.00000 0.71429 0.83333      0.175
-#          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.325                0.350           0.78321
-# Class: 2          0.250                0.375           0.86834
-# Class: 3          0.000                0.075                NA
-# Class: 5          0.025                0.050           0.98718
-# Class: 6          0.000                0.025                NA
-# Class: 7          0.125                0.125           0.85714
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision Recall      F1 Prevalence Detection Rate
+# Class: 1       0.625     0.83333        0.71429        0.76923   0.71429  0.625 0.66667        0.4           0.25
+# Class: 2       0.500     0.75000        0.66667        0.60000   0.66667  0.500 0.57143        0.5           0.25
+# Class: 3          NA     0.92500             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 5          NA     0.95000             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 6          NA     0.97500             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 7       1.000     0.97222        0.80000        1.00000   0.80000  1.000 0.88889        0.1           0.10
+#          Detection Prevalence Balanced Accuracy
+# Class: 1                0.350           0.72917
+# Class: 2                0.375           0.62500
+# Class: 3                0.075                NA
+# Class: 5                0.050                NA
+# Class: 6                0.025                NA
+# Class: 7                0.125           0.98611
 
 # Bootstrapping ========================================================================================================
 # Bootstrapping is any test or metric that uses random sampling with replacement (e.g. mimicking the sampling process),
@@ -144,7 +146,7 @@ base_cm$byClass %>% round(5)
 # or requires complicated formulas for the calculation of standard errors.
 
 boot_samples <- createResample(df$Type, times = 100, list = FALSE)
-df[boot_samples, ]$Type %>% table()
+df[boot_samples,]$Type %>% table()
 #    1    2    3    5    6    7
 # 7079 7471 1770 1247  912 2921
 
@@ -160,23 +162,23 @@ cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.70000        0.57181        0.53468        0.83437        0.42500        0.00041            NaN
+#  0.60000        0.39394        0.43327        0.75135        0.50000        0.13409            NaN
 
 cm$byClass %>% round(5)
-#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.71429     0.84615        0.71429        0.84615   0.71429 0.71429 0.71429      0.350
-# Class: 2     0.64706     0.82609        0.73333        0.76000   0.73333 0.64706 0.68750      0.425
-# Class: 3          NA     0.92500             NA             NA   0.00000      NA      NA      0.000
-# Class: 5     0.66667     1.00000        1.00000        0.97368   1.00000 0.66667 0.80000      0.075
-# Class: 6     0.50000     1.00000        1.00000        0.97436   1.00000 0.50000 0.66667      0.050
-# Class: 7     1.00000     0.97222        0.80000        1.00000   0.80000 1.00000 0.88889      0.100
-#          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.250                0.350           0.78022
-# Class: 2          0.275                0.375           0.73657
-# Class: 3          0.000                0.075                NA
-# Class: 5          0.050                0.050           0.83333
-# Class: 6          0.025                0.025           0.75000
-# Class: 7          0.100                0.125           0.98611
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision Recall      F1 Prevalence Detection Rate
+# Class: 1       0.625     0.83333        0.71429        0.76923   0.71429  0.625 0.66667        0.4           0.25
+# Class: 2       0.500     0.75000        0.66667        0.60000   0.66667  0.500 0.57143        0.5           0.25
+# Class: 3          NA     0.92500             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 5          NA     0.95000             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 6          NA     0.97500             NA             NA   0.00000     NA      NA        0.0           0.00
+# Class: 7       1.000     0.97222        0.80000        1.00000   0.80000  1.000 0.88889        0.1           0.10
+#          Detection Prevalence Balanced Accuracy
+# Class: 1                0.350           0.72917
+# Class: 2                0.375           0.62500
+# Class: 3                0.075                NA
+# Class: 5                0.050                NA
+# Class: 6                0.025                NA
+# Class: 7                0.125           0.98611
 
 # Bagging ==============================================================================================================
 # Bootstrap aggregating, also called bagging (from bootstrap aggregating), is a machine learning ensemble meta-algorithm
@@ -200,21 +202,22 @@ cm$byClass %>% round(5)
 # Using random forest to make prediction
 rf_model <-
   randomForest(Type ~ ., train.data.df)
+rf_model
 # Call:
 #   randomForest(formula = Type ~ ., data = train.data.df)
 # Type of random forest: classification
 # Number of trees: 500
 # No. of variables tried at each split: 3
 #
-# OOB estimate of  error rate: 23.56%
+# OOB estimate of  error rate: 20.11%
 # Confusion matrix:
 #    1  2 3 5 6  7 class.error
-# 1 50  5 1 0 0  0   0.1071429
-# 2  9 45 1 3 2  1   0.2622951
-# 3  5  4 5 0 0  0   0.6428571
-# 5  0  4 0 6 0  1   0.4545455
-# 6  0  2 0 0 6  0   0.2500000
-# 7  1  2 0 0 0 21   0.1250000
+# 1 48  6 1 0 0  1   0.1428571
+# 2  9 49 1 2 0  0   0.1967213
+# 3  7  1 6 0 0  0   0.5714286
+# 5  0  2 0 8 0  1   0.2727273
+# 6  1  0 0 0 7  0   0.1250000
+# 7  1  1 0 0 1 21   0.1250000
 
 pred <-
   predict(rf_model, test.data.df %>% select(!Type)) %>%
@@ -225,23 +228,23 @@ cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.72500        0.61062        0.56112        0.85399        0.47500        0.00119            NaN
+#  0.77500        0.67391        0.61549        0.89160        0.42500        0.00001            NaN
 
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.81818     0.82759        0.64286        0.92308   0.64286 0.81818 0.72000      0.275
-# Class: 2     0.63158     0.85714        0.80000        0.72000   0.80000 0.63158 0.70588      0.475
-# Class: 3     1.00000     0.94872        0.33333        1.00000   0.33333 1.00000 0.50000      0.025
-# Class: 5     0.66667     1.00000        1.00000        0.97368   1.00000 0.66667 0.80000      0.075
-# Class: 6     0.50000     1.00000        1.00000        0.97436   1.00000 0.50000 0.66667      0.050
-# Class: 7     1.00000     0.97222        0.80000        1.00000   0.80000 1.00000 0.88889      0.100
+# Class: 1     0.76471     0.95652        0.92857        0.84615   0.92857 0.76471 0.83871      0.425
+# Class: 2     0.73333     0.84000        0.73333        0.84000   0.73333 0.73333 0.73333      0.375
+# Class: 3     0.50000     0.94737        0.33333        0.97297   0.33333 0.50000 0.40000      0.050
+# Class: 5     1.00000     0.97436        0.50000        1.00000   0.50000 1.00000 0.66667      0.025
+# Class: 6          NA     0.97500             NA             NA   0.00000      NA      NA      0.000
+# Class: 7     1.00000     1.00000        1.00000        1.00000   1.00000 1.00000 1.00000      0.125
 #          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.225                0.350           0.82288
-# Class: 2          0.300                0.375           0.74436
-# Class: 3          0.025                0.075           0.97436
-# Class: 5          0.050                0.050           0.83333
-# Class: 6          0.025                0.025           0.75000
-# Class: 7          0.100                0.125           0.98611
+# Class: 1          0.325                0.350           0.86061
+# Class: 2          0.275                0.375           0.78667
+# Class: 3          0.025                0.075           0.72368
+# Class: 5          0.025                0.050           0.98718
+# Class: 6          0.000                0.025                NA
+# Class: 7          0.125                0.125           1.00000
 
 # using random forest as method of imputation (statistics)
 p <- .5
@@ -272,6 +275,22 @@ df_imputed <- rfImpute(Type ~ ., data = df_na, iter = 10)
 
 rf_model <-
   randomForest(Type ~ ., df_imputed, proximity = TRUE)
+rf_model
+# Call:
+#   randomForest(formula = Type ~ ., data = df_imputed, proximity = TRUE)
+# Type of random forest: classification
+# Number of trees: 500
+# No. of variables tried at each split: 3
+#
+# OOB estimate of  error rate: 42.99%
+# Confusion matrix:
+#    1  2 3 5 6  7 class.error
+# 1 51 18 0 0 1  0   0.2714286
+# 2 21 47 0 3 0  5   0.3815789
+# 3  8  8 0 0 0  1   1.0000000
+# 5  2  7 0 1 0  3   0.9230769
+# 6  1  2 0 0 2  4   0.7777778
+# 7  2  5 0 0 1 21   0.2758621
 
 pred <-
   predict(rf_model, test.data.df %>% select(!Type)) %>%
@@ -282,23 +301,23 @@ cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.85000        0.78475        0.70165        0.94290        0.50000        0.00000            NaN
+#  0.85000        0.78022        0.70165        0.94290        0.42500        0.00000            NaN
 
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.90909     0.86207        0.71429        0.96154   0.71429 0.90909 0.80000      0.275
-# Class: 2     0.75000     1.00000        1.00000        0.80000   1.00000 0.75000 0.85714      0.500
-# Class: 3     1.00000     0.97368        0.66667        1.00000   0.66667 1.00000 0.80000      0.050
-# Class: 5     1.00000     1.00000        1.00000        1.00000   1.00000 1.00000 1.00000      0.050
-# Class: 6     1.00000     1.00000        1.00000        1.00000   1.00000 1.00000 1.00000      0.025
-# Class: 7     1.00000     0.97222        0.80000        1.00000   0.80000 1.00000 0.88889      0.100
+# Class: 1     0.82353     1.00000        1.00000        0.88462   1.00000 0.82353 0.90323      0.425
+# Class: 2     0.81250     0.91667        0.86667        0.88000   0.86667 0.81250 0.83871      0.400
+# Class: 3     1.00000     0.94872        0.33333        1.00000   0.33333 1.00000 0.50000      0.025
+# Class: 5     1.00000     0.97436        0.50000        1.00000   0.50000 1.00000 0.66667      0.025
+# Class: 6          NA     0.97500             NA             NA   0.00000      NA      NA      0.000
+# Class: 7     1.00000     1.00000        1.00000        1.00000   1.00000 1.00000 1.00000      0.125
 #          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.250                0.350           0.88558
-# Class: 2          0.375                0.375           0.87500
-# Class: 3          0.050                0.075           0.98684
-# Class: 5          0.050                0.050           1.00000
-# Class: 6          0.025                0.025           1.00000
-# Class: 7          0.100                0.125           0.98611
+# Class: 1          0.350                0.350           0.91176
+# Class: 2          0.325                0.375           0.86458
+# Class: 3          0.025                0.075           0.97436
+# Class: 5          0.025                0.050           0.98718
+# Class: 6          0.000                0.025                NA
+# Class: 7          0.125                0.125           1.00000
 
 # Cross-validation ======================================================================================================
 # Cross-validation, sometimes called rotation estimation or out-of-sample testing, is any of various similar model
@@ -404,22 +423,22 @@ cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.67500        0.53654        0.50871        0.81427        0.40000        0.00040            NaN
+#  0.57500        0.35667        0.40890        0.72957        0.47500        0.13392            NaN
 
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.66667     0.84000        0.71429        0.80769   0.71429 0.66667 0.68966      0.375
-# Class: 2     0.62500     0.79167        0.66667        0.76000   0.66667 0.62500 0.64516      0.400
+# Class: 1     0.58824     0.82609        0.71429        0.73077   0.71429 0.58824 0.64516      0.425
+# Class: 2     0.47368     0.71429        0.60000        0.60000   0.60000 0.47368 0.52941      0.475
 # Class: 3          NA     0.92500             NA             NA   0.00000      NA      NA      0.000
-# Class: 5     0.66667     1.00000        1.00000        0.97368   1.00000 0.66667 0.80000      0.075
-# Class: 6     0.50000     1.00000        1.00000        0.97436   1.00000 0.50000 0.66667      0.050
+# Class: 5          NA     0.95000             NA             NA   0.00000      NA      NA      0.000
+# Class: 6          NA     0.97500             NA             NA   0.00000      NA      NA      0.000
 # Class: 7     1.00000     0.97222        0.80000        1.00000   0.80000 1.00000 0.88889      0.100
 #          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.250                0.350           0.75333
-# Class: 2          0.250                0.375           0.70833
+# Class: 1          0.250                0.350           0.70716
+# Class: 2          0.225                0.375           0.59398
 # Class: 3          0.000                0.075                NA
-# Class: 5          0.050                0.050           0.83333
-# Class: 6          0.025                0.025           0.75000
+# Class: 5          0.000                0.050                NA
+# Class: 6          0.000                0.025                NA
 # Class: 7          0.100                0.125           0.98611
 
 trainControl <-
@@ -441,20 +460,20 @@ cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
 # Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.67500        0.53613        0.50871        0.81427        0.40000        0.00040            NaN
+#  0.60000        0.39451        0.43327        0.75135        0.47500        0.07707            NaN
 
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: 1     0.66667     0.84000        0.71429        0.80769   0.71429 0.66667 0.68966      0.375
-# Class: 2     0.62500     0.79167        0.66667        0.76000   0.66667 0.62500 0.64516      0.400
+# Class: 1     0.58824     0.82609        0.71429        0.73077   0.71429 0.58824 0.64516      0.425
+# Class: 2     0.52632     0.76190        0.66667        0.64000   0.66667 0.52632 0.58824      0.475
 # Class: 3          NA     0.92500             NA             NA   0.00000      NA      NA      0.000
-# Class: 5     0.50000     1.00000        1.00000        0.94737   1.00000 0.50000 0.66667      0.100
-# Class: 6     1.00000     1.00000        1.00000        1.00000   1.00000 1.00000 1.00000      0.025
+# Class: 5          NA     0.95000             NA             NA   0.00000      NA      NA      0.000
+# Class: 6          NA     0.97500             NA             NA   0.00000      NA      NA      0.000
 # Class: 7     1.00000     0.97222        0.80000        1.00000   0.80000 1.00000 0.88889      0.100
 #          Detection Rate Detection Prevalence Balanced Accuracy
-# Class: 1          0.250                0.350           0.75333
-# Class: 2          0.250                0.375           0.70833
-# Class: 3          0.000                0.075                NA
-# Class: 5          0.050                0.050           0.75000
-# Class: 6          0.025                0.025           1.00000
-# Class: 7          0.100                0.125           0.98611
+# Class: 1           0.25                0.350           0.70716
+# Class: 2           0.25                0.375           0.64411
+# Class: 3           0.00                0.075                NA
+# Class: 5           0.00                0.050                NA
+# Class: 6           0.00                0.025                NA
+# Class: 7           0.10                0.125           0.98611
