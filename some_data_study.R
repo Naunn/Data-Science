@@ -98,7 +98,7 @@ df %>% cor(method = "spearman")
 # in the population; they are independent.
 for (i in 1:ncol(df)) {
   CHIS_DBS <-
-    lapply(df[,-i], function(x)
+    lapply(df[, -i], function(x)
       chisq.test(df[, i], x, simulate.p.value = TRUE))
   print(colnames(df[, i]))
   print(do.call(rbind, CHIS_DBS)[, c(1, 3)])
@@ -209,6 +209,7 @@ bc_list <-
 df_bc <-
   map2_df(df %>% dplyr::select(!CHANCES), bc_list, function(x, y)
     BoxCox(x, lambda = y)) %>%
+  mutate_all(as.vector) %>%
   cbind(df$CHANCES) %>%
   rename(CHANCES = `df$CHANCES`)
 
@@ -323,31 +324,31 @@ training.samples  <-
 
 # Non-normalized sets
 train.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples, ]
 test.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples, ]
 
 train.data$CHANCES %>% table()
 #  4  3  2  1
 # 59 80 82 24
 
 # Normalized sets (standardized)
-train.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
-test.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
+train.data.prep <-
+  mutate(df_prep, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples, ]
+test.data.prep <-
+  mutate(df_prep, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples, ]
 
-train.data$CHANCES %>% table()
+train.data.prep$CHANCES %>% table()
 #  4  3  2  1
 # 59 80 82 24
 
 # Normalized sets (Box-Cox method)
-train.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
-test.data <-
-  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
+train.data.bc <-
+  mutate(df_bc, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples, ]
+test.data.bc <-
+  mutate(df_bc, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples, ]
 
-train.data$CHANCES %>% table()
+train.data.bc$CHANCES %>% table()
 #  4  3  2  1
 # 59 80 82 24
 
@@ -390,7 +391,7 @@ linear_svm
 
 plot(linear_svm, data = train.data, DAT ~ OOP)
 
-pred <- predict(linear_svm, test.data[, -ncol(df)])
+pred <- predict(linear_svm, test.data[,-ncol(df)])
 
 cm <- confusionMatrix(test.data$CHANCES, pred)
 
@@ -420,7 +421,7 @@ linear_svm <-
   )
 linear_svm
 plot(linear_svm, data = train.data, DAT ~ OOP) # much worse
-pred <- predict(linear_svm, test.data[, -ncol(df)])
+pred <- predict(linear_svm, test.data[,-ncol(df)])
 cm <- confusionMatrix(test.data$CHANCES, pred)
 cm$overall[1] # much worse
 
@@ -437,12 +438,12 @@ nonlinear_svm
 
 plot(nonlinear_svm, data = train.data, DAT ~ OOP)
 
-pred <- predict(nonlinear_svm, test.data[, -ncol(df)])
+pred <- predict(nonlinear_svm, test.data[,-ncol(df)])
 
 cm <- confusionMatrix(test.data$CHANCES, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
 #  0.94915        0.92716        0.85851        0.98939        0.38983        0.00000            NaN
 
 cm$byClass %>% round(5)
@@ -469,12 +470,12 @@ nonlinear_svm
 
 plot(nonlinear_svm, data = train.data, DAT ~ OOP)
 
-pred <- predict(nonlinear_svm, test.data[, -ncol(df)])
+pred <- predict(nonlinear_svm, test.data[,-ncol(df)])
 
 cm <- confusionMatrix(test.data$CHANCES, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
 #  0.94915        0.92716        0.85851        0.98939        0.38983        0.00000            NaN
 
 cm$byClass %>% round(5)
@@ -490,3 +491,150 @@ cm$byClass %>% round(5)
 # Class: 1        0.05085              0.08475           0.98214
 
 # Classification on preprocessed data (with all variables) =============================================================
+rf_model <-
+  randomForest(CHANCES ~ ., train.data.prep, proximity = TRUE)
+pred <- predict(rf_model, test.data.prep %>% select(!CHANCES))
+cm <- confusionMatrix(test.data.prep$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.91525 
+
+rf_model <-
+  randomForest(CHANCES ~ ., train.data.bc, proximity = TRUE)
+pred <- predict(rf_model, test.data.bc %>% select(!CHANCES))
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.91525
+
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.prep,
+    kernel = "linear",
+    cost = 10,
+    scale = FALSE
+  )
+plot(linear_svm, data = train.data.prep, DAT ~ OOP)
+pred <- predict(linear_svm, test.data.prep[,-ncol(df)])
+cm <- confusionMatrix(test.data.prep$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.94915
+
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.bc,
+    kernel = "linear",
+    cost = 10,
+    scale = FALSE
+  )
+plot(linear_svm, data = train.data.bc, DAT ~ OOP)
+pred <- predict(linear_svm, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.94915
+
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.prep,
+    kernel = "polynomial",
+    cost = 10,
+    scale = FALSE
+  )
+plot(linear_svm, data = train.data.prep, DAT ~ OOP)
+pred <- predict(linear_svm, test.data.prep[,-ncol(df)])
+cm <- confusionMatrix(test.data.prep$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.86441
+
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.bc,
+    kernel = "polynomial",
+    cost = 10,
+    scale = FALSE
+  )
+plot(linear_svm, data = train.data.bc, DAT ~ OOP)
+pred <- predict(linear_svm, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.94915
+
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.prep,
+    kernel = "radial",
+    cost = 10,
+    scale = FALSE
+  )
+plot(nonlinear_svm, data = train.data.prep, DAT ~ OOP)
+pred <- predict(nonlinear_svm, test.data.prep[,-ncol(df)])
+cm <- confusionMatrix(test.data.prep$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#   0.9322
+
+# WINNER
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.bc,
+    kernel = "radial",
+    cost = 10,
+    scale = FALSE
+  )
+plot(nonlinear_svm, data = train.data.bc, DAT ~ OOP)
+pred <- predict(nonlinear_svm, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall %>% round(5) 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+#  0.96610        0.95174        0.88285        0.99587        0.37288        0.00000            NaN 
+cm$byClass %>% round(5)
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
+# Class: 4     1.00000     1.00000           1.00        1.00000      1.00 1.00000 1.00000    0.23729
+# Class: 3     1.00000     0.97500           0.95        1.00000      0.95 1.00000 0.97436    0.32203
+# Class: 2     0.90909     1.00000           1.00        0.94872      1.00 0.90909 0.95238    0.37288
+# Class: 1     1.00000     0.98182           0.80        1.00000      0.80 1.00000 0.88889    0.06780
+#          Detection Rate Detection Prevalence Balanced Accuracy
+# Class: 4        0.23729              0.23729           1.00000
+# Class: 3        0.32203              0.33898           0.98750
+# Class: 2        0.33898              0.33898           0.95455
+# Class: 1        0.06780              0.08475           0.99091
+
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.prep,
+    kernel = "sigmoid",
+    cost = 10,
+    scale = FALSE
+  )
+plot(nonlinear_svm, data = train.data.prep, DAT ~ OOP)
+pred <- predict(nonlinear_svm, test.data.prep[,-ncol(df)])
+cm <- confusionMatrix(test.data.prep$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.88136
+
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data.bc,
+    kernel = "sigmoid",
+    cost = 10,
+    scale = FALSE
+  )
+plot(nonlinear_svm, data = train.data.bc, DAT ~ OOP)
+pred <- predict(nonlinear_svm, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1] %>% round(5)
+# Accuracy 
+#  0.81356
