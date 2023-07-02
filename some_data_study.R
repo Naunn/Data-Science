@@ -9,7 +9,7 @@ library(GGally)
 library(ggplot2)
 library(FactoMineR)
 library(factoextra)
-library(glmnet)
+library(e1071)
 library(randomForest)
 
 # Data =================================================================================================================
@@ -98,7 +98,7 @@ df %>% cor(method = "spearman")
 # in the population; they are independent.
 for (i in 1:ncol(df)) {
   CHIS_DBS <-
-    lapply(df[, -i], function(x)
+    lapply(df[,-i], function(x)
       chisq.test(df[, i], x, simulate.p.value = TRUE))
   print(colnames(df[, i]))
   print(do.call(rbind, CHIS_DBS)[, c(1, 3)])
@@ -316,17 +316,22 @@ fviz_pca_biplot(pca.m, col.var = "black")
 # - Variables that are negatively correlated are displayed to the opposite sides of the biplot’s origin.
 
 # Classification (with all variables) ==================================================================================
-training.samples <-
-  df$CHANCES %>% createDataPartition(p = 0.8, list = FALSE)
-train.data <- df[training.samples, ]
-test.data <- df[-training.samples, ]
+training.samples  <-
+  df %>% mutate(CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1))) %>%
+  .$CHANCES %>%
+  createDataPartition(p = 0.8, list = FALSE)
+train.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
+test.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
 
 train.data$CHANCES %>% table()
-# High   Middle      Low very_low
-#   59       80       82       24
+#  4  3  2  1
+# 59 80 82 24
 
 # Random Forest model
-rf_model <- randomForest(CHANCES ~ ., train.data, proximity = TRUE)
+rf_model <-
+  randomForest(CHANCES ~ ., train.data, proximity = TRUE)
 rf_model
 
 pred <- predict(rf_model, test.data %>% select(!CHANCES))
@@ -334,21 +339,19 @@ pred <- predict(rf_model, test.data %>% select(!CHANCES))
 cm <- confusionMatrix(test.data$CHANCES, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
-#  0.94915        0.92761        0.85851        0.98939        0.38983        0.00000            NaN
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+#  0.93220        0.90288        0.83541        0.98122        0.40678        0.00000            NaN 
 
 cm$byClass %>% round(5)
-#                 Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
-# Class: High         1.00000     1.00000            1.0        1.00000       1.0 1.00000 1.00000    0.23729
-# Class: Middle       1.00000     0.95122            0.9        1.00000       0.9 1.00000 0.94737    0.30508
-# Class: Low          0.86957     1.00000            1.0        0.92308       1.0 0.86957 0.93023    0.38983
-# Class: very_low     1.00000     0.98182            0.8        1.00000       0.8 1.00000 0.88889    0.06780
-#                 Detection Rate Detection Prevalence Balanced Accuracy
-# Class: High            0.23729              0.23729           1.00000
-# Class: Middle          0.30508              0.33898           0.97561
-# Class: Low             0.33898              0.33898           0.93478
-# Class: very_low        0.06780              0.08475           0.99091
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
+# Class: 4     1.00000     1.00000            1.0        1.00000       1.0 1.00000 1.00000    0.23729
+# Class: 3     1.00000     0.95122            0.9        1.00000       0.9 1.00000 0.94737    0.30508
+# Class: 2     0.83333     1.00000            1.0        0.89744       1.0 0.83333 0.90909    0.40678
+# Class: 1     1.00000     0.96429            0.6        1.00000       0.6 1.00000 0.75000    0.05085
+#          Detection Rate Detection Prevalence Balanced Accuracy
+# Class: 4        0.23729              0.23729           1.00000
+# Class: 3        0.30508              0.33898           0.97561
+# Class: 2        0.33898              0.33898           0.91667
+# Class: 1        0.05085              0.08475           0.98214
 
 # SVM classification model
-
-# ANN model
