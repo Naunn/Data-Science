@@ -9,8 +9,8 @@ library(GGally)
 library(ggplot2)
 library(FactoMineR)
 library(factoextra)
-library(e1071)
 library(randomForest)
+library(e1071)
 
 # Data =================================================================================================================
 some_data <- read_excel("data/some_data.xls")
@@ -496,15 +496,15 @@ rf_model <-
 pred <- predict(rf_model, test.data.prep %>% select(!CHANCES))
 cm <- confusionMatrix(test.data.prep$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
-#  0.91525 
+# Accuracy
+#  0.91525
 
 rf_model <-
   randomForest(CHANCES ~ ., train.data.bc, proximity = TRUE)
 pred <- predict(rf_model, test.data.bc %>% select(!CHANCES))
 cm <- confusionMatrix(test.data.bc$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.91525
 
 linear_svm <-
@@ -519,7 +519,7 @@ plot(linear_svm, data = train.data.prep, DAT ~ OOP)
 pred <- predict(linear_svm, test.data.prep[,-ncol(df)])
 cm <- confusionMatrix(test.data.prep$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.94915
 
 linear_svm <-
@@ -534,7 +534,7 @@ plot(linear_svm, data = train.data.bc, DAT ~ OOP)
 pred <- predict(linear_svm, test.data.bc[,-ncol(df)])
 cm <- confusionMatrix(test.data.bc$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.94915
 
 linear_svm <-
@@ -549,7 +549,7 @@ plot(linear_svm, data = train.data.prep, DAT ~ OOP)
 pred <- predict(linear_svm, test.data.prep[,-ncol(df)])
 cm <- confusionMatrix(test.data.prep$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.86441
 
 linear_svm <-
@@ -564,7 +564,7 @@ plot(linear_svm, data = train.data.bc, DAT ~ OOP)
 pred <- predict(linear_svm, test.data.bc[,-ncol(df)])
 cm <- confusionMatrix(test.data.bc$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.94915
 
 nonlinear_svm <-
@@ -579,7 +579,7 @@ plot(nonlinear_svm, data = train.data.prep, DAT ~ OOP)
 pred <- predict(nonlinear_svm, test.data.prep[,-ncol(df)])
 cm <- confusionMatrix(test.data.prep$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #   0.9322
 
 # WINNER
@@ -594,9 +594,9 @@ nonlinear_svm <-
 plot(nonlinear_svm, data = train.data.bc, DAT ~ OOP)
 pred <- predict(nonlinear_svm, test.data.bc[,-ncol(df)])
 cm <- confusionMatrix(test.data.bc$CHANCES, pred)
-cm$overall %>% round(5) 
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
-#  0.96610        0.95174        0.88285        0.99587        0.37288        0.00000            NaN 
+cm$overall %>% round(5)
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
+#  0.96610        0.95174        0.88285        0.99587        0.37288        0.00000            NaN
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
 # Class: 4     1.00000     1.00000           1.00        1.00000      1.00 1.00000 1.00000    0.23729
@@ -621,7 +621,7 @@ plot(nonlinear_svm, data = train.data.prep, DAT ~ OOP)
 pred <- predict(nonlinear_svm, test.data.prep[,-ncol(df)])
 cm <- confusionMatrix(test.data.prep$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.88136
 
 nonlinear_svm <-
@@ -636,5 +636,44 @@ plot(nonlinear_svm, data = train.data.bc, DAT ~ OOP)
 pred <- predict(nonlinear_svm, test.data.bc[,-ncol(df)])
 cm <- confusionMatrix(test.data.bc$CHANCES, pred)
 cm$overall[1] %>% round(5)
-# Accuracy 
+# Accuracy
 #  0.81356
+
+# Training "the best" model using CV or bootstrapping ==================================================================
+trainControl <-
+  trainControl(method = "repeatedcv",
+               number = 10,
+               repeats = 5)
+metric <- "Accuracy"
+nonlinear_svm_cv <- train(
+  CHANCES ~ .,
+  data = train.data.bc,
+  method = "svmRadial",
+  metric = metric ,
+  trControl = trainControl
+)
+nonlinear_svm_cv
+
+pred <- predict(nonlinear_svm_cv, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1]
+#  Accuracy
+# 0.9152542
+
+trainControl <-
+  trainControl(method = "boot", number = 100)
+metric <- "Accuracy"
+nonlinear_svm_boot <- train(
+  CHANCES ~ .,
+  data = train.data.bc,
+  method = "svmRadial",
+  metric = metric ,
+  trControl = trainControl
+)
+nonlinear_svm_boot
+
+pred <- predict(nonlinear_svm_boot, test.data.bc[,-ncol(df)])
+cm <- confusionMatrix(test.data.bc$CHANCES, pred)
+cm$overall[1]
+#  Accuracy
+# 0.9152542
