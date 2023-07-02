@@ -315,11 +315,13 @@ fviz_pca_biplot(pca.m, col.var = "black")
 #   well represented compared to red meat;
 # - Variables that are negatively correlated are displayed to the opposite sides of the biplot’s origin.
 
-# Classification (with all variables) ==================================================================================
+# Data split into train and test
 training.samples  <-
   df %>% mutate(CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1))) %>%
   .$CHANCES %>%
   createDataPartition(p = 0.8, list = FALSE)
+
+# Non-normalized sets
 train.data <-
   mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
 test.data <-
@@ -329,6 +331,27 @@ train.data$CHANCES %>% table()
 #  4  3  2  1
 # 59 80 82 24
 
+# Normalized sets (standardized)
+train.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
+test.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
+
+train.data$CHANCES %>% table()
+#  4  3  2  1
+# 59 80 82 24
+
+# Normalized sets (Box-Cox method)
+train.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[training.samples,]
+test.data <-
+  mutate(df, CHANCES = factor(CHANCES, levels = c(4, 3, 2, 1)))[-training.samples,]
+
+train.data$CHANCES %>% table()
+#  4  3  2  1
+# 59 80 82 24
+
+# Classification on non-normalized data (with all variables) ===========================================================
 # Random Forest model
 rf_model <-
   randomForest(CHANCES ~ ., train.data, proximity = TRUE)
@@ -339,8 +362,8 @@ pred <- predict(rf_model, test.data %>% select(!CHANCES))
 cm <- confusionMatrix(test.data$CHANCES, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
-#  0.93220        0.90288        0.83541        0.98122        0.40678        0.00000            NaN 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
+#  0.93220        0.90288        0.83541        0.98122        0.40678        0.00000            NaN
 
 cm$byClass %>% round(5)
 #          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
@@ -354,4 +377,116 @@ cm$byClass %>% round(5)
 # Class: 2        0.33898              0.33898           0.91667
 # Class: 1        0.05085              0.08475           0.98214
 
-# SVM classification model
+# Linear SVM classification model
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data,
+    kernel = "linear",
+    cost = 10,
+    scale = FALSE
+  )
+linear_svm
+
+plot(linear_svm, data = train.data, DAT ~ OOP)
+
+pred <- predict(linear_svm, test.data[, -ncol(df)])
+
+cm <- confusionMatrix(test.data$CHANCES, pred)
+
+cm$overall %>% round(5)
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
+#  0.94915        0.92716        0.85851        0.98939        0.38983        0.00000            NaN
+
+cm$byClass %>% round(5)
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
+# Class: 4     1.00000     1.00000           1.00        1.00000      1.00 1.00000 1.00000    0.23729
+# Class: 3     1.00000     0.97500           0.95        1.00000      0.95 1.00000 0.97436    0.32203
+# Class: 2     0.86957     1.00000           1.00        0.92308      1.00 0.86957 0.93023    0.38983
+# Class: 1     1.00000     0.96429           0.60        1.00000      0.60 1.00000 0.75000    0.05085
+#          Detection Rate Detection Prevalence Balanced Accuracy
+# Class: 4        0.23729              0.23729           1.00000
+# Class: 3        0.32203              0.33898           0.98750
+# Class: 2        0.33898              0.33898           0.93478
+# Class: 1        0.05085              0.08475           0.98214
+
+linear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data,
+    kernel = "polynomial",
+    cost = 10,
+    scale = FALSE
+  )
+linear_svm
+plot(linear_svm, data = train.data, DAT ~ OOP) # much worse
+pred <- predict(linear_svm, test.data[, -ncol(df)])
+cm <- confusionMatrix(test.data$CHANCES, pred)
+cm$overall[1] # much worse
+
+# Non-Linear SVM classification model
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data,
+    kernel = "radial",
+    cost = 10,
+    scale = FALSE
+  )
+nonlinear_svm
+
+plot(nonlinear_svm, data = train.data, DAT ~ OOP)
+
+pred <- predict(nonlinear_svm, test.data[, -ncol(df)])
+
+cm <- confusionMatrix(test.data$CHANCES, pred)
+
+cm$overall %>% round(5)
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+#  0.94915        0.92716        0.85851        0.98939        0.38983        0.00000            NaN
+
+cm$byClass %>% round(5)
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
+# Class: 4     1.00000     1.00000           1.00        1.00000      1.00 1.00000 1.00000    0.23729
+# Class: 3     1.00000     0.97500           0.95        1.00000      0.95 1.00000 0.97436    0.32203
+# Class: 2     0.86957     1.00000           1.00        0.92308      1.00 0.86957 0.93023    0.38983
+# Class: 1     1.00000     0.96429           0.60        1.00000      0.60 1.00000 0.75000    0.05085
+#          Detection Rate Detection Prevalence Balanced Accuracy
+# Class: 4        0.23729              0.23729           1.00000
+# Class: 3        0.32203              0.33898           0.98750
+# Class: 2        0.33898              0.33898           0.93478
+# Class: 1        0.05085              0.08475           0.98214
+
+nonlinear_svm <-
+  svm(
+    CHANCES ~ .,
+    data = train.data,
+    kernel = "sigmoid",
+    cost = 10,
+    scale = FALSE
+  )
+nonlinear_svm
+
+plot(nonlinear_svm, data = train.data, DAT ~ OOP)
+
+pred <- predict(nonlinear_svm, test.data[, -ncol(df)])
+
+cm <- confusionMatrix(test.data$CHANCES, pred)
+
+cm$overall %>% round(5)
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+#  0.94915        0.92716        0.85851        0.98939        0.38983        0.00000            NaN
+
+cm$byClass %>% round(5)
+#          Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
+# Class: 4     1.00000     1.00000           1.00        1.00000      1.00 1.00000 1.00000    0.23729
+# Class: 3     1.00000     0.97500           0.95        1.00000      0.95 1.00000 0.97436    0.32203
+# Class: 2     0.86957     1.00000           1.00        0.92308      1.00 0.86957 0.93023    0.38983
+# Class: 1     1.00000     0.96429           0.60        1.00000      0.60 1.00000 0.75000    0.05085
+#          Detection Rate Detection Prevalence Balanced Accuracy
+# Class: 4        0.23729              0.23729           1.00000
+# Class: 3        0.32203              0.33898           0.98750
+# Class: 2        0.33898              0.33898           0.93478
+# Class: 1        0.05085              0.08475           0.98214
+
+# Classification on preprocessed data (with all variables) =============================================================
