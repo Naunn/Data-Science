@@ -107,13 +107,13 @@ linear_svm <-
 linear_svm
 # Call:
 #   svm(formula = Type ~ ., data = train.data.df, kernel = "linear", cost = 10, scale = FALSE)
-# 
-# 
+#
+#
 # Parameters:
-#   SVM-Type:  C-classification 
-# SVM-Kernel:  linear 
-#       cost:  10 
-# 
+#   SVM-Type:  C-classification
+# SVM-Kernel:  linear
+#       cost:  10
+#
 # Number of Support Vectors:  125
 plot(linear_svm, data = train.data.df, RI ~ Na)
 
@@ -122,8 +122,8 @@ pred <- predict(linear_svm, test.data.df[,-ncol(df)])
 cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
-#  0.65000        0.50442        0.48316        0.79372        0.50000        0.04035            NaN 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
+#  0.65000        0.50442        0.48316        0.79372        0.50000        0.04035            NaN
 
 cm$byClass %>% round(5)
 # Sensitivity Specificity Pos Pred Value Neg Pred Value Precision  Recall      F1 Prevalence
@@ -152,15 +152,15 @@ linear_svm <-
 linear_svm
 # Call:
 #   svm(formula = Type ~ ., data = train.data.df, kernel = "polynomial", cost = 10, scale = FALSE)
-# 
-# 
+#
+#
 # Parameters:
-#   SVM-Type:  C-classification 
-# SVM-Kernel:  polynomial 
-#       cost:  10 
-#     degree:  3 
-#     coef.0:  0 
-# 
+#   SVM-Type:  C-classification
+# SVM-Kernel:  polynomial
+#       cost:  10
+#     degree:  3
+#     coef.0:  0
+#
 # Number of Support Vectors:  142
 plot(linear_svm, data = train.data.df, RI ~ Na)
 
@@ -169,7 +169,7 @@ pred <- predict(linear_svm, test.data.df[,-ncol(df)])
 cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
 #  0.62500        0.45255        0.45801        0.77274        0.50000        0.07693            NaN
 
 cm$byClass %>% round(5)
@@ -200,13 +200,13 @@ nonlinear_svm <-
 nonlinear_svm
 # Call:
 #   svm(formula = Type ~ ., data = train.data.df, kernel = "radial", cost = 10, scale = FALSE)
-# 
-# 
+#
+#
 # Parameters:
-#   SVM-Type:  C-classification 
-# SVM-Kernel:  radial 
-#       cost:  10 
-# 
+#   SVM-Type:  C-classification
+# SVM-Kernel:  radial
+#       cost:  10
+#
 # Number of Support Vectors:  131
 plot(nonlinear_svm, data = train.data.df, RI ~ Na)
 
@@ -215,7 +215,7 @@ pred <- predict(nonlinear_svm, test.data.df[,-ncol(df)])
 cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
 #  0.65000        0.49367        0.48316        0.79372        0.42500        0.00343            NaN
 
 cm$byClass %>% round(5)
@@ -245,14 +245,14 @@ nonlinear_svm <-
 nonlinear_svm
 # Call:
 #   svm(formula = Type ~ ., data = train.data.df, kernel = "sigmoid", cost = 10, scale = FALSE)
-# 
-# 
+#
+#
 # Parameters:
-#   SVM-Type:  C-classification 
-# SVM-Kernel:  sigmoid 
-#       cost:  10 
-#     coef.0:  0 
-# 
+#   SVM-Type:  C-classification
+# SVM-Kernel:  sigmoid
+#       cost:  10
+#     coef.0:  0
+#
 # Number of Support Vectors:  122
 plot(nonlinear_svm, data = train.data.df, RI ~ Na)
 
@@ -261,7 +261,7 @@ pred <- predict(nonlinear_svm, test.data.df[,-ncol(df)])
 cm <- confusionMatrix(test.data.df$Type, pred)
 
 cm$overall %>% round(5)
-# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue 
+# Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull AccuracyPValue  McnemarPValue
 #  0.45000        0.19340        0.29259        0.61509        0.57500        0.95996            NaN
 
 cm$byClass %>% round(5)
@@ -280,4 +280,97 @@ cm$byClass %>% round(5)
 # Class: 6          0.000                0.025                NA
 # Class: 7          0.075                0.125           0.97297
 
-# SVM Regression =======================================================================================================
+# Linear SVM Regression ================================================================================================
+linear_svm_reg <-
+  svm(
+    Type ~ .,
+    data = train.data.df %>% mutate_all(as.numeric),
+    kernel = "linear",
+    cost = 10,
+    scale = FALSE,
+    type = 'eps-regression'
+  )
+pred <- predict(linear_svm_reg, test.data.df[,-ncol(df)])
+plot(pred)
+lines(test.data.df$Type)
+
+linear_svm_reg <-
+  svm(
+    Type ~ .,
+    data = train.data.df %>% mutate_all(as.numeric),
+    kernel = "polynomial",
+    cost = 10,
+    scale = FALSE,
+    type = 'eps-regression'
+  )
+pred <- predict(linear_svm_reg, test.data.df[,-ncol(df)])
+plot(pred)
+lines(test.data.df$Type)
+
+# Non-Linear SVM Regression ============================================================================================
+nonlinear_svm_reg <-
+  svm(
+    Type ~ .,
+    data = train.data.df %>% mutate_all(as.numeric),
+    kernel = "radial",
+    cost = 10,
+    scale = FALSE,
+    type = 'eps-regression'
+  )
+pred <- predict(nonlinear_svm_reg, test.data.df[,-ncol(df)])
+plot(pred)
+lines(test.data.df$Type)
+
+nonlinear_svm_reg <-
+  svm(
+    Type ~ .,
+    data = train.data.df %>% mutate_all(as.numeric),
+    kernel = "sigmoid",
+    cost = 10,
+    scale = FALSE,
+    type = 'eps-regression'
+  )
+pred <- predict(nonlinear_svm_reg, test.data.df[,-ncol(df)])
+plot(pred)
+lines(test.data.df$Type)
+
+# library(caret) =======================================================================================================
+trainControl <-
+  trainControl(method = "repeatedcv",
+               number = 10,
+               repeats = 3)
+metric <- "Accuracy"
+fit.cv.svm <- train(
+  Type ~ .,
+  data = train.data.df,
+  method = "svmLinear",
+  metric = metric ,
+  trControl = trainControl
+)
+fit.cv.svm
+pred <- predict(fit.cv.svm, test.data.df[,-ncol(df)])
+
+cm <- confusionMatrix(test.data.df$Type, pred)
+
+cm$overall[1]
+# Accuracy
+#     0.65
+
+trainControl <-
+  trainControl(method = "boot", number = 100)
+metric <- "Accuracy"
+fit.cv.svm <- train(
+  Type ~ .,
+  data = train.data.df,
+  method = "svmLinear",
+  metric = metric ,
+  trControl = trainControl
+)
+fit.cv.svm
+pred <- predict(fit.cv.svm, test.data.df[,-ncol(df)])
+
+cm <- confusionMatrix(test.data.df$Type, pred)
+
+cm$overall[1]
+# Accuracy
+#     0.65
