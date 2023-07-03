@@ -3,6 +3,7 @@ library(dplyr)
 library(tidyr)
 library(purrr)
 library(readxl)
+library(writexl)
 library(caret)
 library(forecast)
 library(GGally)
@@ -351,6 +352,19 @@ test.data.bc <-
 train.data.bc$CHANCES %>% table()
 #  4  3  2  1
 # 59 80 82 24
+
+# Save to files
+write_xlsx(
+  x = list(
+    train.data = train.data,
+    test.data = test.data,
+    train.data.prep = train.data.prep,
+    test.data.prep = test.data.prep,
+    train.data.bc = train.data.bc,
+    test.data.bc = test.data.bc
+  ),
+  path = 'data/df_splited.xlsx'
+)
 
 # Classification on non-normalized data (with all variables) ===========================================================
 # Random Forest model
