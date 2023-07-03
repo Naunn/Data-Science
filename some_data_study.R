@@ -356,12 +356,12 @@ train.data.bc$CHANCES %>% table()
 # Save to files
 write_xlsx(
   x = list(
-    train.data = train.data,
-    test.data = test.data,
-    train.data.prep = train.data.prep,
-    test.data.prep = test.data.prep,
-    train.data.bc = train.data.bc,
-    test.data.bc = test.data.bc
+    train_data = train.data,
+    test_data = test.data,
+    train_data_prep = train.data.prep,
+    test_data_prep = test.data.prep,
+    train_data_bc = train.data.bc,
+    test_data_bc = test.data.bc
   ),
   path = 'data/df_splited.xlsx'
 )
